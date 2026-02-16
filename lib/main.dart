@@ -12,11 +12,40 @@ class RockInRio extends StatelessWidget {
     return MaterialApp(
       title: 'Rock In Rio',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.indigo),
+      theme: ThemeData(
+        useMaterial3: true, 
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.indigo,
+          // Você também pode definir o brilho (claro ou escuro) aqui:
+          // brightness: Brightness.light, 
+        ),
+      ),
       home: const HomePage(),
     );
   }
 }
+
+/*
+
+versao do video deu conflito nas cores por usar uma ver~sao antiga do material:
+
+class RockInRio extends StatelessWidget {
+  const RockInRio({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Rock In Rio',
+      debugShowCheckedModeBanner: false,
+
+      essa aqui  
+      theme: ThemeData(primarySwatch: Colors.indigo),
+
+      home: const HomePage(),
+    );
+  }
+}
+*/
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super (key: key);
@@ -26,13 +55,83 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final List<Atracao> _listaFavoritos = [];
   @override 
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Atrações'),
       ),
-      body: const Placeholder(),
+      body: ListView.builder(
+        itemCount: listaAtracoes.length,
+        itemBuilder: (context, index) {
+          final isFavorito = _listaFavoritos.contains(listaAtracoes[index]);
+         return ListTile(
+          onTap: () {
+            Navigator.push(
+              context, 
+              MaterialPageRoute(builder: (context) => 
+              AtracaoPage(atracao: listaAtracoes[index])));
+          },
+    title: Text(listaAtracoes[index].nome),
+    subtitle: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: listaAtracoes[index]
+            .tags
+            .map((tag) => Chip(label: Text('#$tag')))
+            .toList(),
+    ),
+    leading: CircleAvatar(
+        child: Text('${listaAtracoes[index].dia}'),
+    ),
+    trailing: IconButton(
+        onPressed: () {
+          setState(() {
+            if(isFavorito){
+             _listaFavoritos.remove(listaAtracoes[index]);
+            }else{
+              _listaFavoritos.add(listaAtracoes[index]);
+            }
+          });
+        },
+        icon: isFavorito
+       ? const Icon(Icons.favorite, color: Colors.red)
+       : const Icon(Icons.favorite_border),
+    ),
+);
+        }
+      ),
+    );
+  }
+}
+
+class AtracaoPage extends StatelessWidget {
+  final Atracao atracao;
+  const AtracaoPage({Key? key, required this.atracao}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(atracao.nome), 
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child:  Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var tag in atracao.tags) Chip(label: Text('#$tag')),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Voltar'),
+            )
+          ],
+        ),
+      )
     );
   }
 }
